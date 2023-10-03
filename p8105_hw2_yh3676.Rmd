@@ -4,3 +4,53 @@ author: "Yuzhe Hu"
 date: "2023-10-03"
 output: github_document
 ---
+
+```{r setup, message=FALSE}
+library(tidyverse)
+library(readxl)
+```
+
+## Problem 1
+Clean `pols-month.csv` data
+```{r step1, message=FALSE}
+pols_month = 
+  read_csv("./data/pols-month.csv") |>
+  janitor::clean_names() |>
+  separate(mon, into = c("year","month","day"), sep = "-") |>
+  mutate(month = month.abb[as.numeric(month)],
+         president =  ifelse(prez_gop == 1,"gop","dem")) |> 
+  select(-prez_dem, -prez_gop, -day)
+```
+
+Clean `snp.csv` data
+```{r step2, message=FALSE}
+snp_df = 
+  read_csv("./data/snp.csv") |>
+  separate(date, into = c("month", "day", "year"), sep = "/") |>
+  mutate(month = month.abb[as.numeric(month)]) |>
+  mutate(year = ifelse(as.numeric(year) <= 16, paste0("20", year), paste0("19", year))) |>
+  select(-day) |>
+  select(year, month, everything())
+```
+
+Clean `unemployment.csv` data
+```{r step3, message=FALSE}
+unempl_df = 
+  read_csv("./data/unemployment.csv") |>
+  pivot_longer(Jan:Dec, names_to = "month", values_to = "unemployment rate") |> 
+  rename(year = Year) |>
+  mutate(year = as.character(year))
+```
+
+Merging `snp` into `pols`, and then merging `unemployment` into the result.
+```{r}
+# Merging `snp_df` into `pols_month`
+merge_df_1 =
+  left_join(pols_month, snp_df, by = c("year","month"))
+
+# Then merging `unempl_df`:
+merge_df = 
+  left_join(merge_df_1, unempl_df, by = c("year","month"))
+```
+
+* The file`pol_month.csv` contains data on the number of democratic or republican national politicians at various points in time between 1947 and 2015. The file `snp.csv` contains data related to Standard & Poor’s stock market index from 1950 to 2015. The file `unemployment.csv` contains monthly percentage of unemployment data from 1948 to 2015. The resulting dataset is merged by the above three datasets, which comprises 822 observations and 11 variables. It covers a 68-year range from 1947 to 2015. Key variables in the resulting dataset are `year`,`month`,`president`,`close` and `unemployment rate`.
