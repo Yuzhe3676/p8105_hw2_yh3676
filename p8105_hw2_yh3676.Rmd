@@ -53,6 +53,52 @@ merge_df =
   left_join(merge_df_1, unempl_df, by = c("year","month"))
 ```
 
-* The file`pol_month.csv` contains data on the number of democratic or republican national politicians at various points in time between 1947 and 2015. The file `snp.csv` contains data related to Standard & Poor’s stock market index from 1950 to 2015. The file `unemployment.csv` contains monthly percentage of unemployment data from 1948 to 2015. The resulting dataset is merged by the above three datasets, which comprises 822 observations and 11 variables. It covers a 68-year range from 1947 to 2015. Key variables in the resulting dataset are `year`,`month`,`president`,`close` and `unemployment rate`.
+* The file`pol_month.csv` contains data on the number of democratic or republican national politicians at various points in time between 1947 and 2015. 
+* The file `snp.csv` contains data related to Standard & Poor’s stock market index from 1950 to 2015. 
+* The file `unemployment.csv` contains monthly percentage of unemployment data from 1948 to 2015. * The resulting dataset is merged by the above three datasets, which comprises 822 observations and 11 variables. It covers a 68-year range from 1947 to 2015. Key variables in the resulting dataset are `year`,`month`,`president`,`close` and `unemployment rate`.
+
 
 ## Problem 2
+Clean the _Mr. Trash Wheel_ sheet
+```{r}
+mr_wheel = 
+  read_excel('./data/202309 Trash Wheel Collection Data.xlsx', sheet = 1, range = 'A2:N586') |>
+  janitor::clean_names() |>
+  mutate(year = as.numeric(year))
+```
+
+The data include a column for the (approximate) number of homes powered. This calculation is described in the `Homes powered note`, but not applied to every row in the dataset. Update the data to include a new `homes_powered` variable based on this calculation.
+
+```{r homes_powered}
+mr_wheel = mutate(mr_wheel, homes_powered = weight_tons * 500 / 30)
+```
+
+Use a similar process to import, clean, and organize the data for _Professor Trash Wheel_ and _Gwynnda_, and combine these with the _Mr. Trash Wheel_ dataset to produce a single tidy dataset. 
+
+```{r, message=FALSE}
+professor_wheel = 
+  read_excel('./data/202309 Trash Wheel Collection Data.xlsx', sheet = 2, range = 'A2:M108') |>
+  janitor::clean_names() |>
+  mutate(homes_powered = weight_tons*500/30) |>
+  mutate(type = 'professor trash wheel')
+
+gwynnda_wheel = 
+  read_excel('./data/202309 Trash Wheel Collection Data.xlsx', sheet = 4, range = 'A2:L157') |>
+  janitor::clean_names() |>
+  mutate(homes_powered = weight_tons*500/30) |>
+  mutate(type = 'gwynnda trash wheel')
+
+mr_wheel = mutate(mr_wheel, type = 'mr trash wheel')
+
+## Combine the three datasets
+Combine_wheel = 
+  full_join(mr_wheel, professor_wheel) |> 
+  full_join(gwynnda_wheel)
+```
+
+* The `Combine_wheel` is a collection of three datasets with `r nrow(Combine_wheel)` number of observations. `r nrow(mr_wheel)` observations from the _Mr. Trash Wheel_ dataset,  `r nrow(professor_wheel)` observations from the _Professor Trash Wheel_ dataset, and `r nrow(gwynnda_wheel)` observations from the _Gwynnda Trash Wheel_ dataset. For key variables, each observation contains the date (`month`, `year` and `date`), weight(`weight_tons`) and volume(`volume_cubic_yards`) of trash, number of different trash categories (e.g. `plastic_bags`, `cigarette_butts`), and which trash wheel it belongs to.
+* The total weight of trash collected by Professor Trash Wheel is `r sum(pull(professor_wheel, weight_tons))` tons. 
+* The total number of cigarette butts collected by Gwynnda in July of 2021 is `r gwynnda_wheel |> filter(year == 2021, month == 'July') |> pull(cigarette_butts) |> sum()`.
+
+
+
