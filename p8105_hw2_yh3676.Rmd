@@ -138,29 +138,30 @@ amyloid_df =
       "time_8" ~ 8
     ))
 ```
-* The dataset `amyloid_df` is imported by skipping the first row. Use `pivot_longer` to switch the dataset from “wide” to “long” format. The column name 'study_id' is changed to 'id' to match with the `baseline_df` dataset. The data type of `amyloid_ratio` is converted to numeric through `mutate`. 
-* The dateset `amyloid_df` has `r nrow(amyloid_df)` observations and `r ncol(amyloid_df)` variables. The names of variables are: `r names(amyloid_df)`.
+* The dataset `amyloid_df` is imported by skipping the first row. Use `pivot_longer` to transform the dataset from wide to long format. The column name `study_id` is changed to `id` to match with the `baseline_df` dataset. The data type of `amyloid_ratio` is converted to numeric through `mutate`. 
+* The dateset `amyloid_df` has `r nrow(amyloid_df)` observations and `r ncol(amyloid_df)` variables, with variale names: `r names(amyloid_df)`.
 
 Check whether some participants appear in only the baseline or amyloid datasets. 
 ```{r}
+##Select the ids first
 id_baseline = unique(pull(baseline_df, id))
 id_amyloid = unique(pull(amyloid_df, id))
-
-id_baseline_only = id_baseline[!(id_baseline %in% id_amyloid)] #participants that only appear in baseline
-id_amyloid_only = id_amyloid[!(id_amyloid %in% id_baseline)] #participants that only appear in amyloid
+#Ids of participants that only appear in `MCI_baseline.csv`
+id_baseline_only = id_baseline[!(id_baseline %in% id_amyloid)]
+#Ids of participants that only appear in `mci_amyloid.csv`
+id_amyloid_only = id_amyloid[!(id_amyloid %in% id_baseline)] 
 ```
 
 * A total of `r length(setdiff(pull(baseline_df, id), pull(amyloid_df, id)))` participants appear in only the baseline dataset, and their id are `r id_baseline_only`. A total of `r length(setdiff(pull(amyloid_df, id), pull(baseline_df, id)))` participants appear in only the amyloid dataset, and their id are `r id_amyloid_only`. 
 
-Combine the demographic and biomarker datasets so that only participants who appear in both datasets are retained, and export the result as a CSV
-
+Combine the demographic and biomarker datasets so that only participants who appear in both datasets are retained, and export the result as a CSV.
 ```{r}
 #Combine the data set
 combined_df = inner_join(baseline_df, amyloid_df, by = "id")
 #Export the combined data
 write_csv(combined_df,"./data/combined_df.csv")
 ```
-* The resulting dataset `combined_df` contains the data of `r combined_df |> pull(id) |> unique() |> length()` participants who appear in both datasets, including their basic demographic information (`id`,  `current_age`, `sex`, `education` ), APOE4 carrier status (`apoe4`), `age_at_onset` of MCI and their amyloid β 42/40 ratio (`amyloid_ratio`) at the time of measurement (`time`).
+* The resulting dataset `combined_df` contains the data of `r combined_df |> pull(id) |> unique() |> length()` participants who appear in both datasets, including their basic demographic information (`id`,  `current_age`, `sex`, `education` ), APOE4 carrier status (`apoe4`), `age_at_onset` of MCI and their amyloid β 42/40 ratio (`amyloid_ratio`) at measurement time (`time`).
 
 * `r combined_df |> filter(apoe4 == "carrier") |> pull(id) |> unique() |> length()` of the participants are APOE4 carriers, and `r combined_df |> filter(apoe4 == "carrier", age_at_onset > 0) |> pull(id) |> unique() |> length()` of them developed MCI. `r combined_df |> filter(apoe4 == "non-carrier") |> pull(id) |> unique() |> length()` of the participants are non-carriers, and `r combined_df |> filter(apoe4 == "non-carrier", age_at_onset > 0) |> pull(id) |> unique() |> length()` of them developed MCI.
 
