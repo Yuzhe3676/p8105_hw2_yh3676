@@ -162,9 +162,7 @@ combined_df = inner_join(baseline_df, amyloid_df, by = "id")
 #Export the combined data
 write_csv(combined_df,"./data/combined_df.csv")
 ```
-* The resulting dataset `combined_df` contains the data of `r combined_df |> pull(id) |> unique() |> length()` participants who appear in both datasets, including their basic demographic information (`id`,  `current_age`, `sex`, `education` ), APOE4 carrier status (`apoe4`), `age_at_onset` of MCI and their amyloid β 42/40 ratio (`amyloid_ratio`) at measurement time (`time`). `r combined_df |> filter(apoe4 == "carrier") |> pull(id) |> unique() |> length()` of the participants are APOE4 carriers, and `r combined_df |> filter(apoe4 == "carrier", age_at_onset > 0) |> pull(id) |> unique() |> length()` of them developed MCI. `r combined_df |> filter(apoe4 == "non-carrier") |> pull(id) |> unique() |> length()` of the participants are non-carriers, and `r combined_df |> filter(apoe4 == "non-carrier", age_at_onset > 0) |> pull(id) |> unique() |> length()` of them developed MCI.
-
-
+* The resulting dataset `combined_df` contains `r nrow(combined_df)` observations, in other words, the data of `r combined_df |> pull(id) |> unique() |> length()` participants who appear in both datasets, including their basic demographic information (`id`,  `current_age`, `sex`, `education` ), APOE4 carrier status (`apoe4`), `age_at_onset` of MCI and their amyloid β 42/40 ratio (`amyloid_ratio`) at measurement time (`time`). `r combined_df |> filter(apoe4 == "carrier") |> pull(id) |> unique() |> length()` of the participants are APOE4 carriers, and `r combined_df |> filter(apoe4 == "carrier", age_at_onset > 0) |> pull(id) |> unique() |> length()` of them developed MCI. `r combined_df |> filter(apoe4 == "non-carrier") |> pull(id) |> unique() |> length()` of the participants are non-carriers, and `r combined_df |> filter(apoe4 == "non-carrier", age_at_onset > 0) |> pull(id) |> unique() |> length()` of them developed MCI.
 
 
 
